@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ceph-exporter
+spec:
+  replicas: 1
+  template:
+    spec:
+      volumes:
+        - name: ceph-config
+          emptyDir: {}
+      containers:
+        - name: ceph-exporter
+          image: ghcr.io/ocp-on-nerc/ceph-exporter-image:v0.1.0
+          ports:
+            - name: metrics
+              containerPort: 9128
+          volumeMounts:
+            - name: ceph-config
+              mountPath: /etc/ceph
+          env:
+            - name: CEPH_MON_HOSTS
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-config
+                  key: mon_host
+            - name: CEPH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-operator-creds
+                  key: userID
+            - name: CEPH_USERKEY
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-operator-creds
+                  key: userKey
